@@ -20,23 +20,33 @@ PscyAgent 是一个专门设计用于监控AI对话系统的工具，能够实�
 ```{bash}
 git clone https://github.com/Arlene036/pscyAgent.git
 cd pscyAgent
+conda create -n pscyAgent python=3.9
+conda activate pscyAgent
 pip install -r requirements.txt
 ```
 
 ## Quick Start
 
+0. Config Setting
+   
+   在app/config.py里面配置参数
+
+
 1. 启动服务
+   
+
 ```{bash}
-uvicorn app.main:app --reload
+python run.py
 ```
 
-2. api调用
-```{python}
-import httpx
-import asyncio
-async def monitor_dialogue():
-async with httpx.AsyncClient() as client:
-    dialogue_data = {
+可以通过http://localhost:8000/docs查看demo
+
+1. sample input
+
+```
+curl -X POST http://localhost:8000/api/v1/monitor \
+-H "Content-Type: application/json" \
+-d '{
         "conversation_history": [
             {
                 "role": "user",
@@ -49,17 +59,8 @@ async with httpx.AsyncClient() as client:
                 "timestamp": "2024-03-15T10:30:05Z"
             }
         ],
-        "session_id": "sess_123456"
-    }
-
-    response = await client.post(
-        "http://localhost:8000/api/v1/monitor",
-        json=dialogue_data
-    )
-
-    result = response.json()
-    print(result)
-
+  "session_id": "user123_20240315"
+}'
 ```
 
 
@@ -90,8 +91,7 @@ async with httpx.AsyncClient() as client:
 ```
 
 
-
-## API 文档
+## API 说明
 
 ### POST /api/v1/monitor
 
@@ -102,7 +102,7 @@ async with httpx.AsyncClient() as client:
 | 字段 | 类型 | 描述 |
 |------|------|------|
 | conversation_history | array | 对话历史记录 |
-| session_id | string | 会话ID |
+| session_id | string | 会话ID，同一个用户的多轮对话可以用相同的session_id |
 
 conversation_history 中的每条消息格式：
 
@@ -117,9 +117,9 @@ conversation_history 中的每条消息格式：
 | 字段 | 类型 | 描述 |
 |------|------|------|
 | status | string | 状态("normal"或"alert") |
-| anomalies | array | 检测到的异常列表 |
-| risk_level | string | 风险等级 |
-| suggestions | array | 处理建议列表 |
+| anomalies | array | 检测到的异常列表，分为emotional/behavioral/quality/security |
+| risk_level | string | 风险等级(low|medium|high) |
+| suggestions | array | 综合的处理建议列表 |
 
 ## 异常类型说明
 
@@ -143,6 +143,16 @@ conversation_history 中的每条消息格式：
    - 违规内容
    - 隐私问题
 
+## 代码说明
 
-
+pscyAgent/
+├── app/
+│ ├── api/
+│ │ └── routes.py # API路由定义
+│ ├── core/
+│ │ ├── monitor.py # 模块1: 对话监控
+│ │ └── security.py # 模块2: 安全检查
+│ ├── main.py # FastAPI应用入口
+│ ├── run.py # quick start
+│ └── config.py # 设置一些参数
 
