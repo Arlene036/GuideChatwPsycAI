@@ -2,18 +2,21 @@
 
 PscyAgent 是一个专门设计用于监控AI对话系统的工具，能够实时检测对话中的异常情况，包括情绪波动、行为风险、安全隐患等，并提供相应的处理建议。
 
-## 功能特点
+## 代码说明
 
-- 实时对话监控与分析
-- 多维度异常检测
-  - 用户情绪与心理异常场景
-  - 用户沟通行为异常场景
-  - AI回答质量与逻辑异常场景
-  - 互动体验异常场景
-  - 敏感与合规风险场景
-- 基于严重程度的分级处理
-- 自动生成处理建议
-- 安全与隐私保护
+```
+pscyAgent/
+├── app/
+│ ├── api/
+│ │ └── routes.py # API路由定义
+│ ├── core/
+│ │ ├── model_client.py 
+│ │ ├── monitor.py # 模块1: 对话监控
+│ │ └── security.py # 模块2: 安全检查
+│ ├── main.py # FastAPI应用入口
+│ ├── run.py # quick start
+│ └── config.py # 设置一些参数
+```
 
 ## 安装
 
@@ -144,19 +147,4 @@ conversation_history 中的每条消息格式：
    - 敏感信息泄露
    - 违规内容
    - 隐私问题
-
-## 代码说明
-
-```
-pscyAgent/
-├── app/
-│ ├── api/
-│ │ └── routes.py # API路由定义
-│ ├── core/
-│ │ ├── monitor.py # 模块1: 对话监控
-│ │ └── security.py # 模块2: 安全检查
-│ ├── main.py # FastAPI应用入口
-│ ├── run.py # quick start
-│ └── config.py # 设置一些参数
-```
 
