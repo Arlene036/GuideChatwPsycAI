@@ -29,7 +29,9 @@ pip install -r requirements.txt
 
 0. Config Setting
    
-   在app/config.py里面配置参数
+   在app/config.py里面配置参数。
+
+   可以选择使用API calling（不本地部署），也可以选择本地部署模型并implement openai api调用（请参考并run `openai_api.py`)
 
 
 1. 启动服务
