@@ -119,8 +119,8 @@ conversation_history 中的每条消息格式：
 | 字段 | 类型 | 描述 |
 |------|------|------|
 | status | string | 状态("normal"或"alert") |
-| anomalies | array | 检测到的异常列表，分为emotional/behavioral/quality/security |
-| risk_level | string | 风险等级(low|medium|high) |
+| anomalies | array | 检测到的异常列表，其中type分为emotional/behavioral/quality/security |
+| risk_level | string | 风险等级(low/medium/high) |
 | suggestions | array | 综合的处理建议列表 |
 
 ## 异常类型说明
@@ -147,6 +147,7 @@ conversation_history 中的每条消息格式：
 
 ## 代码说明
 
+```
 pscyAgent/
 ├── app/
 │ ├── api/
@@ -157,4 +158,5 @@ pscyAgent/
 │ ├── main.py # FastAPI应用入口
 │ ├── run.py # quick start
 │ └── config.py # 设置一些参数
+```
 
