@@ -5,13 +5,14 @@ from pathlib import Path
 from fastapi import BackgroundTasks
 from openai import AsyncOpenAI
 from app.config import settings
+from app.core.model_client import OpenAIClient
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SecurityManager:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = OpenAIClient()
         
     async def check_dialogue_safety(
         self, 
@@ -48,15 +49,14 @@ class SecurityManager:
             }) 
             
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini", 
+            response_content = await self.client.generate(
                 messages=messages,
-                response_format={ "type": "json_object" },
-                temperature=0.1
+                temperature=0.1,
+                response_format={"type": "json_object"}
             )
             
             import json
-            analysis = json.loads(response.choices[0].message.content)
+            analysis = json.loads(response_content)
             
             analysis["session_id"] = session_id
             analysis["timestamp"] = datetime.now().isoformat()

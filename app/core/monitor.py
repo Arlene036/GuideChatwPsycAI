@@ -1,10 +1,11 @@
 from typing import List, Dict
 from openai import AsyncOpenAI
 from app.config import settings
+from app.core.model_client import OpenAIClient
 
 class DialogueMonitor:
     def __init__(self):
-        self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        self.client = OpenAIClient()
         
     async def analyze(self, conversation: List[Dict]) -> Dict:
         result = {
@@ -62,17 +63,14 @@ class DialogueMonitor:
                 messages.append({"role": "user", "content": msg.content})
         
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+            response_content = await self.client.generate(
                 messages=messages,
-                response_format={ "type": "json_object" },
-                temperature=0.1
+                temperature=0.1,
+                response_format={"type": "json_object"}
             )
             
-            analysis = response.choices[0].message.content
             import json
-            # analysis = eval(analysis) 
-            analysis = json.loads(analysis)
+            analysis = json.loads(response_content)
             
             if analysis["emotional_state"]["has_negative"]:
                 issues.append({
@@ -135,17 +133,14 @@ class DialogueMonitor:
             messages.append({"role": msg.role, "content": msg.content})
             
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+            response_content = await self.client.generate(
                 messages=messages,
-                response_format={ "type": "json_object" },
-                temperature=0.1
+                temperature=0.1,
+                response_format={"type": "json_object"}
             )
             
-            analysis = response.choices[0].message.content
             import json
-            # analysis = eval(analysis)
-            analysis = json.loads(analysis)
+            analysis = json.loads(response_content)
             if analysis["behavioral_issues"]["has_issues"]:
                 issues.append({
                     "type": "behavioral",
@@ -211,17 +206,14 @@ class DialogueMonitor:
                 messages.append({"role": msg.role, "content": msg.content})
         
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+            response_content = await self.client.generate(
                 messages=messages,
-                response_format={ "type": "json_object" },
-                temperature=0.1
+                temperature=0.1,
+                response_format={"type": "json_object"}
             )
             
-            analysis = response.choices[0].message.content
             import json
-            # analysis = eval(analysis)
-            analysis = json.loads(analysis)
+            analysis = json.loads(response_content)
             
             if analysis["response_quality"]["has_issues"]:
                 issues.append({
@@ -287,13 +279,13 @@ class DialogueMonitor:
         ]
         
         try:
-            response = await self.client.chat.completions.create(
-                model="gpt-4o-mini",
+            response_content = await self.client.generate(
                 messages=messages,
-                temperature=0.7
+                temperature=0.1,
+                response_format={"type": "json_object"}
             )
             
-            suggestions = response.choices[0].message.content.strip().split("\n")
+            suggestions = response_content.strip().split("\n")
             return [s.strip("- ") for s in suggestions if s.strip()]
             
         except Exception:
