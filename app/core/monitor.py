@@ -2,6 +2,7 @@ from typing import List, Dict
 from openai import AsyncOpenAI
 from app.config import settings
 from app.core.model_client import OpenAIClient
+import asyncio
 
 class DialogueMonitor:
     def __init__(self):
@@ -15,9 +16,11 @@ class DialogueMonitor:
             "suggestions": []
         }
         
-        emotional_issues = await self._check_emotional_state(conversation)
-        behavioral_issues = await self._check_behavioral_patterns(conversation)
-        quality_issues = await self._check_ai_response_quality(conversation)
+        emotional_issues, behavioral_issues, quality_issues = await asyncio.gather(
+            self._check_emotional_state(conversation),
+            self._check_behavioral_patterns(conversation),
+            self._check_ai_response_quality(conversation)
+        )
         
         all_issues = emotional_issues + behavioral_issues + quality_issues
         

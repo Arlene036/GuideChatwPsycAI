@@ -6,10 +6,15 @@ class OpenAIClient():
     def __init__(self):
         if settings.BASE_URL=="":
             self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        elif settings.DEEPSEEK_API_KEY != "":
+            self.client = AsyncOpenAI(
+                base_url=settings.BASE_URL, 
+                api_key=settings.DEEPSEEK_API_KEY
+            )
         else:
             self.client = AsyncOpenAI(
                 base_url=settings.BASE_URL, 
-                api_key=settings.DUMMPY_API_KEY 
+                api_key=settings.DUMMPY_API_KEY
             )
     
     async def generate(self, messages: List[Dict], **kwargs) -> str:

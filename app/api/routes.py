@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 from app.core.monitor import DialogueMonitor
 from app.core.security import SecurityManager
-
+import asyncio
 router = APIRouter()
 
 class Message(BaseModel):
@@ -43,10 +43,12 @@ async def monitor_dialogue(
     dialogue_monitor: DialogueMonitor = Depends(get_dialogue_monitor)
 ):
     try:
-        # 1. security check
-        security_check = await security_manager.check_dialogue_safety(
-            dialogue.conversation_history,
-            dialogue.session_id
+        security_check, monitor_result = await asyncio.gather(
+            security_manager.check_dialogue_safety(
+                dialogue.conversation_history,
+                dialogue.session_id
+            ),
+            dialogue_monitor.analyze(dialogue.conversation_history)
         )
         
         if security_check.get("severity") == "high":
@@ -62,10 +64,6 @@ async def monitor_dialogue(
                 security_status=security_check
             )
         
-        # 2. monitor
-        monitor_result = await dialogue_monitor.analyze(dialogue.conversation_history)
-        
-        # 3. 合并security和monitor结果
         if security_check.get("has_issues"):
             monitor_result["anomalies"].append({
                 "type": "security",
