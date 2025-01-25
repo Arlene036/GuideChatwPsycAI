@@ -19,7 +19,7 @@ PscyAgent 是一个专门设计用于监控AI对话系统的工具，能够实�
 
 ```{bash}
 git clone https://github.com/Arlene036/pscyAgent.git
-cd pscyAgent
+cd GuideChatwPsycAI
 conda create -n pscyAgent python=3.9
 conda activate pscyAgent
 pip install -r requirements.txt
@@ -46,7 +46,7 @@ python run.py
 1. sample input
 
 ```
-curl -X POST http://localhost:8000/api/v1/monitor \
+curl -X POST https://u456499-88f4-7dcb22d5.cqa1.seetacloud.com:8443/api/v1/monitor \
 -H "Content-Type: application/json" \
 -d '{
         "conversation_history": [
@@ -62,6 +62,51 @@ curl -X POST http://localhost:8000/api/v1/monitor \
             }
         ],
   "session_id": "user123_20240315"
+}'
+```
+
+```
+curl -X 'POST' \
+  'http://localhost:6006/api/v1/monitor' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "conversation_history": [
+    {
+      "role": "user",
+      "content": "感到空虚应该怎么办"
+    },
+    {
+      "role": "assistant",
+      "content": "你好，我很愿意为你提供帮助。对于你提到的'\''感到空虚'\''，我想知道更多的情况。你能谈谈是什么原因让你觉得空虚吗？是工作、生活还是其他方面的事情呢？这样我可以更好地理解你的问题。"
+    },
+    {
+      "role": "user",
+      "content": "生活"
+    },
+    {
+      "role": "assistant",
+      "content": "可以再具体一点吗？比如：感情、家庭、朋友或是事业方面的什么情况让你感觉空虚？"
+    },
+    {
+      "role": "user",
+      "content": "学业和未来"
+    },
+    {
+      "role": "assistant",
+      "content": "好的，我明白了。你觉得在学业和未来的规划上遇到了什么困扰或挑战了吗？"
+    },
+    {
+      "role": "user",
+      "content": "我觉得我根本没有出路"
+    },
+    {
+      "role": "assistant",
+      "content": "看到这里的描述，我能感受到你的无助和焦虑。但请记住，无论面对怎样的困境，都有解决的办法。你现在是一名大学生，对吧？那么，是否可以将你认为的'\''出路'\''与所学专业联系起来呢？例如通过进一步学习专业知识、参加相关实习或是社团活动来开拓视野。"
+    }
+  ],
+  "session_id": "testuser_1",
+  "metadata": {}
 }'
 ```
 

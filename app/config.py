@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     DUMMPY_API_KEY: str = "dummy_api_key"
     TEMPERATURE: float = 0.1 # default temperature
 
-    MODEL_NAME: str = "gpt-4o-mini" # default model, choose like [chatglm2-6B]
+    MODEL_NAME: str = "deepseek-chat" # default model, choose like [chatglm2-6B], "deepseek-chat",
 
     ############################################################
 

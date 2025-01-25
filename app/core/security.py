@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List
 import logging
 from pathlib import Path
+import time
 from fastapi import BackgroundTasks
 from openai import AsyncOpenAI
 from app.config import settings
@@ -42,22 +43,32 @@ class SecurityManager:
             """}
         ]
         
+        cont = ""
         for msg in conversation_history:
-            messages.append({
-                "role": msg.role,
-                "content": msg.content
-            }) 
+            cont += f"{msg.role}: {msg.content}\n"
+        messages.append({"role": 'user', "content": cont})
             
         try:
+            start_time = time.time()
             response_content = await self.client.generate(
                 messages=messages,
                 temperature=0.1,
                 response_format={"type": "json_object"}
             )
+            end_time = time.time()
             
+            start_processing = time.time()
             import json
-            analysis = json.loads(response_content)
+            import re
+            if "```" in response_content:
+                pattern = r"```(?:json)?\n?(.*?)```"
+                match = re.search(pattern, response_content, re.DOTALL)
+                if match:
+                    response_content = match.group(1).strip()
             
+            analysis = json.loads(response_content)
+            end_processing = time.time()
+
             analysis["session_id"] = session_id
             analysis["timestamp"] = datetime.now().isoformat()
             
@@ -68,7 +79,13 @@ class SecurityManager:
                     "通知相关负责人"
                 ])
             
-            await self._log_security_event(analysis) if analysis["has_issues"] else None
+            end_time = time.time()
+            time_metrics = {
+                "total_latency": round(end_time - start_time, 2),
+                "response_latency": round(end_time - start_time, 2),
+                "processing_latency": round(end_processing - start_processing, 2),
+            }
+            print(f"\n\nSecurity性能指标: {time_metrics}\n\n")
             
             return analysis
             
