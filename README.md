@@ -18,8 +18,6 @@ PscyAgent 是一个专门设计用于监控AI对话系统的工具，能够实�
 ## 安装
 
 ```{bash}
-git clone https://github.com/Arlene036/pscyAgent.git
-cd GuideChatwPsycAI
 conda create -n pscyAgent python=3.9
 conda activate pscyAgent
 pip install -r requirements.txt
@@ -37,16 +35,16 @@ pip install -r requirements.txt
 1. 启动服务
    
 
-```{bash}
-python run.py
+    ```{bash}
+    python run.py
+    ```
+
+    可以通过http://localhost:8000/docs查看demo
+
+2. sample input
+
 ```
-
-可以通过http://localhost:8000/docs查看demo
-
-1. sample input
-
-```
-curl -X POST https://u456499-88f4-7dcb22d5.cqa1.seetacloud.com:8443/api/v1/monitor \
+curl -X POST https://<EXTERNAL_URL:PORT>/api/v1/monitor \
 -H "Content-Type: application/json" \
 -d '{
         "conversation_history": [
@@ -115,27 +113,96 @@ curl -X 'POST' \
 
 ```{json}
 {
-    "status": "alert",
-    "anomalies": [
-        {
-            "type": "emotional",
-            "severity": "high",
-            "description": "检测到强烈的负面情绪表达",
-            "recommendations": [
-                "建议温和回应",
-                "表达同理心",
-                "考虑专业帮助"
-            ]
-        }
+  "status": "alert",
+  "anomalies": [
+    {
+      "type": "emotional",
+      "severity": "medium",
+      "description": "用户表达了感到空虚和无助的情绪，特别是在学业和未来规划方面，显示出一定程度的焦虑。"
+    },
+    {
+      "type": "risk",
+      "severity": "low",
+      "description": "用户表现出对未来感到迷茫和自我怀疑，但未直接提及自我伤害或自杀的意图，风险较低。"
+    }
+  ],
+  "risk_level": "medium",
+  "suggestions": [
+    "1. 首先，表达对用户情绪的理解和共情，确认他们的感受是正常的，特别是在面对学业和未来规划的压力时。",
+    "2. 引导用户详细描述他们在学业和未来规划中感到空虚和无助的具体情境，帮助他们更清晰地识别问题的根源。",
+    "3. 提供一些缓解焦虑的实用技巧，如深呼吸、时间管理或设定小目标，帮助用户在短期内减轻压力。",
+    "4. 鼓励用户探索他们的兴趣和价值观，帮助他们找到对未来规划的方向感，减少迷茫感。",
+    "5. 建议用户与信任的朋友、家人或导师讨论他们的感受和困惑，以获得外部支持和不同的视角。",
+    "6. 提醒用户关注自我照顾，确保他们有足够的休息和放松时间，避免过度压力积累。",
+    "7. 如果用户的焦虑持续或加重，建议他们考虑寻求专业心理咨询师的进一步帮助。"
+  ],
+  "security_status": {
+    "has_issues": false,
+    "severity": "low",
+    "risk_types": [],
+    "description": "对话内容主要围绕用户的情感状态和生活困扰，没有涉及敏感个人信息、违法违规内容、不当内容、数据安全风险或政治敏感内容。",
+    "recommendations": [
+      "继续提供情感支持和建设性建议，帮助用户缓解焦虑和空虚感。",
+      "建议用户寻求专业的心理咨询或辅导，以获得更深入的支持和指导。"
     ],
-    "risk_level": "high",
-    "suggestions": [
-        "保持积极支持态度",
-        "避免过度追问或批评",
-        "引导用户寻求专业帮助"
-    ]
+    "requires_immediate_action": false,
+    "session_id": "testuser_1",
+    "timestamp": "2025-01-21T15:12:38.919960"
+  }
 }
 ```
+
+## vllm本地部署大模型说明
+AutoDL租A100-SXM4-80GB * 1卡，额外存储50GB+
+
+
+开启学术加速，修改huggingface的存储到autodl-tmp数据盘
+```
+echo 'source /etc/network_turbo' >> ~/.bashrc
+echo 'export HF_HOME=/root/autodl-tmp/huggingface' >> ~/.bashrc
+source ~/.bashrc
+```
+
+开screen窗口，一个部署大模型，一个部署监督模组
+```
+# 1. 创建第一个screen窗口用于vllm
+screen -S vllm
+# 在这个窗口中运行
+vllm serve Qwen/Qwen2.5-32B-Instruct \
+    --max-model-len 16384 \
+    --enforce-eager \
+    --gpu-memory-utilization 0.7 \
+    --quantization awq \
+    --port 8000
+
+# 按 Ctrl+A+D 暂时离开这个窗口
+
+
+# 2. 修改app/config.py文件里的参数
+# MODEL_NAME: str = "Qwen/Qwen2.5-32B-Instruct"
+# BASE_URL: str = "http://localhost:8000/v1"
+
+
+# 3. 创建第二个screen窗口用于监督模组
+screen -S supervisor
+# 在这个窗口中运行你的监督模组
+python run.py  # 或者其他启动命令
+# 按 Ctrl+A+D 暂时离开这个窗口
+```
+
+
+测试本地部署的大模型是否可用
+```
+curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "Qwen/Qwen2.5-32B-Instruct",
+        "prompt": "what is json",
+        "max_tokens": 20,
+        "temperature": 0.7
+    }'
+```
+
 
 
 ## API 说明
@@ -157,7 +224,7 @@ conversation_history 中的每条消息格式：
 |------|------|------|
 | role | string | 角色("user"或"assistant") |
 | content | string | 消息内容 |
-| timestamp | string | 时间戳(ISO格式) |
+| [optional] timestamp | string | 时间戳(ISO格式) |
 
 #### 响应 (JSON)
 
@@ -165,7 +232,7 @@ conversation_history 中的每条消息格式：
 |------|------|------|
 | status | string | 状态("normal"或"alert") |
 | anomalies | array | 检测到的异常列表，分为emotional/behavioral/quality/security |
-| risk_level | string | 风险等级(low|medium|high) |
+| risk_level | string | 风险等级(low/medium/high) |
 | suggestions | array | 综合的处理建议列表 |
 
 ## 异常类型说明
@@ -192,6 +259,7 @@ conversation_history 中的每条消息格式：
 
 ## 代码说明
 
+```
 pscyAgent/
 ├── app/
 │ ├── api/
@@ -202,4 +270,5 @@ pscyAgent/
 │ ├── main.py # FastAPI应用入口
 │ ├── run.py # quick start
 │ └── config.py # 设置一些参数
-
+```
+可以在`core`文件夹下面添加更多modules，以适应更多需要的监督情况。
